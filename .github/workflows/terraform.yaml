@@ -44,10 +44,15 @@ jobs:
       id: tf_outputs
       working-directory: ./scripts/terraform
       run: |
-        echo "CONTAINER_REGISTRY=$(terraform output -raw container_registry_login_server)" >> $GITHUB_ENV
-        echo "REGISTRY_UN=$(terraform output -raw registry_admin_username)" >> $GITHUB_ENV
-        echo "REGISTRY_PW=$(terraform output -raw registry_admin_password)" >> $GITHUB_ENV
-        echo "KUBE_CONFIG=$(terraform output -raw kube_config | base64)" >> $GITHUB_ENV
+        terraform output -raw container_registry_login_server > container_registry.txt
+        terraform output -raw registry_admin_username > registry_username.txt
+        terraform output -raw registry_admin_password > registry_password.txt
+        terraform output -raw kube_config | base64 > kube_config.txt
+
+        echo "CONTAINER_REGISTRY=$(cat container_registry.txt)" >> $GITHUB_ENV
+        echo "REGISTRY_UN=$(cat registry_username.txt)" >> $GITHUB_ENV
+        echo "REGISTRY_PW=$(cat registry_password.txt)" >> $GITHUB_ENV
+        echo "KUBE_CONFIG=$(cat kube_config.txt)" >> $GITHUB_ENV
 
     
     - name: Set Secrets with GH_TOKEN
