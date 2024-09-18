@@ -11,7 +11,3 @@ variable location {
 variable kubernetes_version {
   default = "1.30.3"    
 }
-
-variable "resource_group_name" {
-  default = "deakinuni"
-}
