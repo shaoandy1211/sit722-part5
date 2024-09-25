@@ -31,26 +31,3 @@ jobs:
       working-directory: ./scripts/terraform
       run: terraform apply -auto-approve
 
-    - name: Get Terraform Outputs
-      id: outputs
-      working-directory: ./scripts/terraform
-      run: |
-        echo "CONTAINER_REGISTRY=$(terraform output -raw acr_login_url | grep -v "::debug")" >> $GITHUB_ENV
-        echo "REGISTRY_UN=$(terraform output -raw acr_username | grep -v "::debug")" >> $GITHUB_ENV
-        echo "REGISTRY_PW=$(terraform output -raw acr_password | grep -v "::debug")" >> $GITHUB_ENV
-        echo "KUBE_CONFIG=$(terraform output -raw aks_kubeconfig | grep -v "::debug")" >> $GITHUB_ENV
-
-
-    - name: Install GitHub CLI
-      run: sudo apt-get install gh
-   
-    - name: Authenticate GitHub CLI
-      run: |
-        echo "${{ secrets.MY_PAT }}" | gh auth login --with-token
-
-    - name: Set Secrets with GH_TOKEN
-      run: |
-        gh secret set CONTAINER_REGISTRY --body "$CONTAINER_REGISTRY"
-        gh secret set REGISTRY_UN --body "$REGISTRY_UN"
-        gh secret set REGISTRY_PW --body "$REGISTRY_PW"
-        gh secret set KUBE_CONFIG --body "$KUBE_CONFIG"
