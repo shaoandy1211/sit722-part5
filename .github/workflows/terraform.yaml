@@ -41,7 +41,7 @@ jobs:
         echo "KUBE_CONFIG=$(terraform output -raw aks_kubeconfig | grep -v "::debug")" >> $GITHUB_ENV
 
     - name: Install GitHub CLI
-      uses: actions/setup-gh@v2
+      uses: actions/gh-cli@v1
       with:
         token: ${{ secrets.MY_PAT}}
 
