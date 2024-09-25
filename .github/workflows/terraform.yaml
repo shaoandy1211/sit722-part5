@@ -1,32 +1,23 @@
-# az ad sp create-for-rbac --name "my-github-actions-sp" --role Contributor --scopes /subscriptions/YOUR_SUBSCRIPTION_ID --sdk-auth
-# az acr login --name YOUR_ACR_NAME
-# az acr repository list --name YOUR_ACR_NAME --output table
-# az acr repository show-tags --name YOUR_ACR_NAME --repository YOUR_IMAGE_NAME --output table
-# az acr repository show --name YOUR_ACR_NAME --image YOUR_IMAGE_NAME:YOUR_TAG
-# az acr repository show-manifests --name YOUR_ACR_NAME --image YOUR_IMAGE_NAME:YOUR_TAG
-
 name: Terraform Infrastructure Setup
 
 on:
   workflow_dispatch: 
 
-
 jobs:
   terraform:
+    name: Terraform apply
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install GitHub CLI
-      run: sudo apt-get install gh
-
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: '1.5.6' 
 
+    # Use command: az ad sp create-for-rbac --name github-actions --role Owner --scopes /subscriptions/82923ab2-fd6b-42cd-9d50-39af93cacfe8 --sdk-auth to generate required data
     - name: Azure Login
       uses: azure/login@v1
       with:
@@ -40,24 +31,21 @@ jobs:
       working-directory: ./scripts/terraform
       run: terraform apply -auto-approve
 
-    - name: Get and Save Terraform Outputs
-      id: tf_outputs
+    - name: Get Terraform Outputs
+      id: outputs
       working-directory: ./scripts/terraform
       run: |
-        terraform output -raw container_registry_login_server > container_registry.txt
-        terraform output -raw registry_admin_username > registry_username.txt
-        terraform output -raw registry_admin_password > registry_password.txt
-        terraform output -raw kube_config | base64 > kube_config.txt
+        echo "CONTAINER_REGISTRY=$(terraform output -raw acr_login_url | grep -v "::debug")" >> $GITHUB_ENV
+        echo "REGISTRY_UN=$(terraform output -raw acr_username | grep -v "::debug")" >> $GITHUB_ENV
+        echo "REGISTRY_PW=$(terraform output -raw acr_password | grep -v "::debug")" >> $GITHUB_ENV
+        echo "KUBE_CONFIG=$(terraform output -raw aks_kubeconfig | grep -v "::debug")" >> $GITHUB_ENV
 
-        echo "CONTAINER_REGISTRY=$(cat container_registry.txt)" >> $GITHUB_ENV
-        echo "REGISTRY_UN=$(cat registry_username.txt)" >> $GITHUB_ENV
-        echo "REGISTRY_PW=$(cat registry_password.txt)" >> $GITHUB_ENV
-        echo "KUBE_CONFIG=$(cat kube_config.txt)" >> $GITHUB_ENV
+    - name: Install GitHub CLI
+      uses: actions/setup-gh@v2
+      with:
+        token: ${{ secrets.GH_TOKEN }}
 
-    
     - name: Set Secrets with GH_TOKEN
-      env:
-        GH_TOKEN: ${{ secrets.MY_PAT }}
       run: |
         gh secret set CONTAINER_REGISTRY --body "$CONTAINER_REGISTRY"
         gh secret set REGISTRY_UN --body "$REGISTRY_UN"
