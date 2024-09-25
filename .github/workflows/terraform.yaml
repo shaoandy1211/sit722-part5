@@ -17,7 +17,7 @@ jobs:
       with:
         terraform_version: '1.5.6' 
 
-    # Use command: az ad sp create-for-rbac --name github-actions --role Owner --scopes /subscriptions/82923ab2-fd6b-42cd-9d50-39af93cacfe8 --sdk-auth to generate required data
+    # Use command: az ad sp create-for-rbac --name github-actions --role Owner --scopes /subscriptions/82923ab2-fd6b-42cd-9d50-39af93cacfe8 --sdk-auth
     - name: Azure Login
       uses: azure/login@v1
       with:
@@ -43,7 +43,7 @@ jobs:
     - name: Install GitHub CLI
       uses: actions/setup-gh@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.MY_PAT}}
 
     - name: Set Secrets with GH_TOKEN
       run: |
